@@ -18,7 +18,79 @@ link='https://github.com/EvansDataScience/VisualAnalytics_2_tabularData/raw/mast
 load(file=url(link))
 ```
 
+
 ```{r}
-barplot(table(eduwa$Title.I.School))
+base= ggplot(data = tableFreq, 
+             aes(x = reorder(locale,-pct),
+                 y = pct,)) 
+```
+
+```{r}
+plot1 = base + geom_bar(fill ="gray",
+                        stat = 'identity',)
+plot1
+```
+
+
+```{r}
+tableFreqO$PositiveGap=ifelse(tableFreqO$gap>0,T,F)
+
+base = ggplot(tableFreqO, aes(locale,gap,color=PositiveGap,
+                              label = round(gap,3))) #  change
+lolliplot1=base + geom_segment(aes(y = 0, 
+                                   x = locale, 
+                                   yend = gap, 
+                                   xend = locale), color = "gray")
+lolliplot2=lolliplot1 + geom_point() 
+lolliplot3= lolliplot2 + scale_x_discrete(limits=tableFreqO$locale) 
+lolliplot4 = lolliplot3 + geom_hline(yintercept = 2500, 
+                                     linetype="dashed",
+                                     size =1.5, 
+                                     alpha=0.5)
+lolliplot5 = lolliplot4 + labs(title = TitleText4)
+lolliplot5 + geom_text(nudge_x=0.3) 
+```
+
+```{r}
+table(eduwa$High.Grade,exclude = 'nothing')
+```
+
+```{r}
+names(eduwa)
+```
+
+
+
+```{r}
+ordLabels= levels(eduwa$High.Grade)
+
+box2 = box1 + scale_y_continuous(labels=ordLabels,breaks=1:15)
+box3 = box2 + labs(title = TitleText5)
+box3
+```
+```{r}
+TitleText5 = 'Terminal Grades in Washington State'
+```
+
+```{r}
+hist(eduwa3$Free.Lunch,labels = T,xlab="Free Lunch", xaxt="n") 
+abline(h=400,lty=3,lwd=3)
+axis(side=1, at=dataHist$breaks)
+```
+```{r}
+eduwa4=eduwa[complete.cases(eduwa$Student.Teacher.Ratio),]
+```
+
+
+```{r}
+mvDense=density(meanValues)
+hist(meanValues)
+plot(mvDense,main="Title",col='black',xlab=NA,)
+
+abline(v=mean(meanValues),lty=3,lwd=3,col='blue') #mean
+abline(v=median(meanValues),lty=3,lwd=3,col='red')#median
+legend(x="right",
+       legend=c('mean','median'),
+       fill = c('blue','red'),bty = 'n') #no box in the legend
 ```
 
