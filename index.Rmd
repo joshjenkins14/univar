@@ -1,15 +1,21 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
 <br> 
 <center><img src="http://i.imgur.com/sSaOozN.png" width="500"></center>
 
 ## Course: Visual Analytics for Policy and Management
 
-### Prof. José Manuel Magallanes, PhD 
+### Joshua Jenkins 
 
 _____
 <a id='part1'></a>
 
-# Part 2: Visualizing Tabular data
-### Univariate Case
+# Univariate
+### Exercises
 
 ```{r getData, eval=TRUE}
 link='https://github.com/EvansDataScience/VisualAnalytics_2_tabularData/raw/master/data/eduwa.rda'
@@ -18,74 +24,259 @@ link='https://github.com/EvansDataScience/VisualAnalytics_2_tabularData/raw/mast
 load(file=url(link))
 ```
 
+### Exercise 1
+
+```{r eval=TRUE}
+library(ggplot2)
+```
+
+
+
+
+```{r}
+absoluteT=table(eduwa$LocaleType,exclude = 'nothing')
+prop.table(absoluteT)
+```
+
+```{r}
+ToPlot=prop.table(absoluteT)
+barplot(ToPlot)
+```
+
+```{r}
+ToPlot1=ToPlot*100
+```
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+paletteHereNew=c('gray')
+```
+
+```{r}
+plotLabels=paste0(round(ToPlot,2),'%') # labels for the slices
+```
+
+
+```{r}
+par(mgp=c(1,0.5,0)) 
+location=barplot(ToPlot1,
+         col = paletteHereNew,
+         border=NA,
+         main="Offenses in Washington DC",
+         xlim=c(0,50), 
+         xlab = '(in %)',
+         cex.names=0.6,
+         cex.lab=0.6,
+         las=2,
+         horiz = T,
+         xaxt="n") # no x-axis, so I customize it below...
+
+text(x=ToPlot,y=location,labels=plotLabels,pos = 4,cex = 0.7) 
+title(sub="DC Public Safety", adj=0,cex.sub=0.7,line = 3) 
+
+#reference line
+abline(v=25,lty=3,lwd=3)
+
+
+# customizing tick values
+newXvalues<-c(0,10,25,40,50) # you just want to show this on the axis
+axis(side=1, 
+     at=newXvalues, 
+     labels = newXvalues,
+     cex.axis=0.8)
+
+```
+```{r}
+tableFreq=as.data.frame(ToPlot)
+names(tableFreq)=c("offense","pct")
+```
+
 
 ```{r}
 base= ggplot(data = tableFreq, 
-             aes(x = reorder(locale,-pct),
-                 y = pct,)) 
+             aes(x = reorder(offense,-pct),
+                 y = pct)) 
 ```
 
 ```{r}
+library(scales)
+```
+
+```{r}
+tableFreq
+```
+
+
+```{r}
+base= ggplot(data = tableFreq, 
+             aes(x = reorder(offense,-pct),
+                 y = pct)) 
 plot1 = base + geom_bar(fill ="gray",
-                        stat = 'identity',)
-plot1
+                        stat = 'identity') 
+plot2 = plot1 + labs(title="Offenses in Washington, DC",
+                     x =NULL, 
+                     y = NULL,
+                     caption = "DC Public Safety")
+plot3 = plot2 + scale_y_continuous(breaks=c(0,10, 25,40,50),
+                                 limits = c(0, 50), 
+                                 labels=scales::unit_format(suffix = '%'))
+plot4 = plot3 + theme(panel.background = element_rect(fill = "white",
+                                                    colour = "grey50"),
+                    plot.caption = element_text(hjust = 0), 
+                    plot.title = element_text(hjust = 0.5))
+plot5 = plot4 + geom_text(aes(y = pct ,
+                            label = paste0(round(pct,2), '%')),
+                        vjust=1, # if flipping 'hjust'
+                        size = 3)
+plot6 = plot5 + geom_hline(yintercept = 25, #where
+                           linetype="dashed", 
+                           size=1.5, #thickness
+                           alpha=0.5) #transparency
+plot6  
 ```
+
+### Exercise 2 
 
 
 ```{r}
-tableFreqO$PositiveGap=ifelse(tableFreqO$gap>0,T,F)
-
-base = ggplot(tableFreqO, aes(locale,gap,color=PositiveGap,
-                              label = round(gap,3))) #  change
+base = ggplot(tableFreq, aes(x=offense,pct))
 lolliplot1=base + geom_segment(aes(y = 0, 
-                                   x = locale, 
-                                   yend = gap, 
-                                   xend = locale), color = "gray")
-lolliplot2=lolliplot1 + geom_point() 
-lolliplot3= lolliplot2 + scale_x_discrete(limits=tableFreqO$locale) 
-lolliplot4 = lolliplot3 + geom_hline(yintercept = 2500, 
-                                     linetype="dashed",
-                                     size =1.5, 
-                                     alpha=0.5)
-lolliplot5 = lolliplot4 + labs(title = TitleText4)
-lolliplot5 + geom_text(nudge_x=0.3) 
+                                   x = offense, 
+                                   yend = pct, 
+                                   xend = offense), color = "grey50") 
+lolliplot1 + geom_point()
+```
+
+
+
+```{r}
+tableFreqO=tableFreq[order(tableFreq$pct),]
+
+
+base = ggplot(tableFreqO, aes(offense,pct)) 
+lolliplot1=base + geom_segment(aes(y = 0, 
+                                   x = offense, 
+                                   yend = pct, 
+                                   xend = offense), color = "gray") 
+lolliplot2 = lolliplot1 + geom_point()
+lolliplot2 + scale_x_discrete(limits=tableFreqO$offense) 
+lolliplot3 = lolliplot2 + geom_hline(yintercept = 25,
+                                     linetype = "dashed",
+                                     size = 1.5,
+                                     alpha = 0.5)
+lolliplot4 = lolliplot3 + labs(title="Offenses in Washington, DC",
+                     x =NULL, 
+                     y = NULL,
+                     caption = "DC Public Safety")
+lolliplot4 
+
+```
+
+### Exercise 3
+
+
+
+```{r}
+frqTabO=as.data.frame(prop.table(table(eduwa$High.Grade)))
+names(frqTabO)=c('grade','pct')
+frqTabO
 ```
 
 ```{r}
-table(eduwa$High.Grade,exclude = 'nothing')
+base = ggplot(frqTabO,aes(x=grade,y=pct))
+base + geom_bar(stat = 'identity') 
 ```
 
 ```{r}
-names(eduwa)
+box1 = ggplot(eduwa, aes(y=as.numeric(High.Grade))) 
+box1 = box1 + geom_boxplot() + coord_flip() # to show it horizontally
+
+box1
 ```
 
 
 
 ```{r}
 ordLabels= levels(eduwa$High.Grade)
-
 box2 = box1 + scale_y_continuous(labels=ordLabels,breaks=1:15)
-box3 = box2 + labs(title = TitleText5)
+box3 = box2 + labs(title = 'Terminal Grades in Washington State',
+                   caption = "US Department of Education")
 box3
 ```
+
+
+### Exercise 4 
+
 ```{r}
-TitleText5 = 'Terminal Grades in Washington State'
+length(unique(eduwa$Free.Lunch))
 ```
 
 ```{r}
-hist(eduwa3$Free.Lunch,labels = T,xlab="Free Lunch", xaxt="n") 
-abline(h=400,lty=3,lwd=3)
-axis(side=1, at=dataHist$breaks)
+eduwa3=eduwa[complete.cases(eduwa$Free.Lunch),]
+dataHist=hist(eduwa3$Free.Lunch)
 ```
+
+```{r}
+par(mgp=c(1,0.5,0)) 
+location=hist(eduwa3$Free.Lunch,
+         col = paletteHereNew,
+         border=NA,
+         main="Number of Free Lunch Recipients in Washington State Pubic Schools",
+         sub = "US Department of Education",
+         xlim=c(0,1500), 
+         xlab = '(in %)') 
+
+
+abline(v=25,lty=3,lwd=3)
+
+
+newXvalues<-c(0,10,25,40,50) # you just want to show this on the axis
+axis(side=1, 
+     at=newXvalues, 
+     labels = newXvalues,
+     cex.axis=0.8)
+```
+
+
+```{r}
+base= ggplot(eduwa3,aes(x = Free.Lunch))  
+h1= base + geom_histogram(binwidth = 20,boundary=0) #changing width
+h1= h1 + stat_bin(binwidth = 20, aes(label=..count..), 
+                  geom = "text",boundary = 0,vjust=-0.5)
+h1
+```
+
+
+
+```{r}
+hist(eduwa3$Free.Lunch,labels = T,xlab="Free Lunch", xaxt="n", main = "Number of Free Lunch Recipients in Washington State Pubic Schools", ) 
+axis(side=1, at=dataHist$breaks)
+abline(h=400,lty=3,lwd=3)
+
+```
+
+### Exercise 5
+
+
+
+
 ```{r}
 eduwa4=eduwa[complete.cases(eduwa$Student.Teacher.Ratio),]
+```
+
+```{r}
+meanValues=tapply(eduwa4$Student.Teacher.Ratio, 
+                  eduwa4$County, 
+                  mean)
 ```
 
 
 ```{r}
 mvDense=density(meanValues)
-hist(meanValues)
-plot(mvDense,main="Title",col='black',xlab=NA,)
+plot(mvDense,main="Student Teacher Ratio",col='black',xlab="Student Teacher Ratios", ylab= "frequency", sub = "US Department of Education")
 
 abline(v=mean(meanValues),lty=3,lwd=3,col='blue') #mean
 abline(v=median(meanValues),lty=3,lwd=3,col='red')#median
@@ -93,4 +284,11 @@ legend(x="right",
        legend=c('mean','median'),
        fill = c('blue','red'),bty = 'n') #no box in the legend
 ```
+
+
+```{r}
+hist(meanValues, main="Student Teacher Ratio",col='gray',xlab="Student Teacher Ratios", ylab= "frequency", sub = "US Department of Education")
+```
+
+
 
